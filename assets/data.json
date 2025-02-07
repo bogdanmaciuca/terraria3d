@@ -1,0 +1,28 @@
+{
+    "items": [
+        {
+            "name": "Copper Shortsword",
+            "type": ["weapon", "material"],
+            "crit": 0.04,
+            "use_time": 13,
+            "velocity": 4.2,
+            "rarity": "white",
+            "sell": 70
+        },
+        {
+            "name": "Stone Block",
+            "type": "block",
+            "size": { "x": 1, "y": 1 },
+            "use_time": 15,
+            "rarity": "white",
+            "sell": 0
+        },
+        {
+            "name": "Shackle",
+            "type": "accessory",
+            "defense": 1,
+            "rarity": "blue",
+            "sell": 2000
+        }
+    ]
+}
