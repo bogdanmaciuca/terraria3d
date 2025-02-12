@@ -3,7 +3,7 @@ TARGET=t3d
 BUILD=./build
 SRC=./src
 VENDOR=./vendor
-CFLAGS=-std=c++20 -g
+CFLAGS=-std=c++20 -g -fsanitize=address -Wall -Wextra
 LINKER=-lGL -lglfw
 
 all: $(BUILD)/main.o $(BUILD)/glw.o $(BUILD)/game.o $(BUILD)/gameobjects.o $(BUILD)/simdjson.o $(BUILD)/glad.o
@@ -35,4 +35,4 @@ $(BUILD)/glad.o: $(VENDOR)/glad/glad.c $(VENDOR)/glad/glad.h $(VENDOR)/glad/khrp
 	$(CXX) -c -o $(BUILD)/glad.o $(VENDOR)/glad/glad.c $(CFLAGS)
 
 clean:
-	rm $(BUILD)/*
+	$(shell rm $(BUILD)/*.o $(BUILD)/$(TARGET))
