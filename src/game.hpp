@@ -17,7 +17,9 @@ private:
 
     struct Vertex {
         float x, y, z;
+        float nx, ny, nz;
     };
+    float light_theta = 0;
     std::vector<Item> items;
     glw::Shader shader;
     glw::Camera camera;

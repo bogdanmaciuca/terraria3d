@@ -5,6 +5,19 @@
 #include "../vendor/glad/glad.h"
 
 namespace glw {
+    void VertexArrayObject::AddAttrib(GLenum type, i32 num) {
+        glVertexAttribPointer(_idx, num, type, GL_FALSE, _stride, reinterpret_cast<void*>(_offset));
+        glEnableVertexAttribArray(_idx);
+        u8 size;
+        switch(type) {
+            case GL_BYTE: case GL_UNSIGNED_BYTE: size = 1; break;
+            case GL_SHORT: case GL_UNSIGNED_SHORT: size = 2; break;
+            case GL_INT: case GL_UNSIGNED_INT: case GL_FLOAT: size = 4; break;
+        }
+        _idx++;
+        _offset += num * size;
+    }
+
     // TODO: Make this faster and place it in a separate file if another file needs it
     void ReadFile(const std::string& filename, std::string* out) {
         std::ifstream file(filename);
@@ -91,6 +104,7 @@ namespace glw {
         assert(window != nullptr);
         glfwMakeContextCurrent(window);
         assert(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress));
+        glEnable(GL_DEPTH_TEST);
     }
     void Cleanup() {
         glfwTerminate();
