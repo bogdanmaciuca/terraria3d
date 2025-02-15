@@ -1,8 +1,8 @@
 #include "glw.hpp"
 #include <cassert>
-#include <iostream>
 #include <fstream>
-#include "../vendor/glad/glad.h"
+#include <iostream> // TODO: using logging library and only include it on debug builds
+#include <glad/glad.h>
 
 namespace glw {
     void VertexArrayObject::AddAttrib(GLenum type, i32 num) {

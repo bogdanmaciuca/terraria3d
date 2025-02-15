@@ -1,7 +1,10 @@
 #include "game.hpp"
-#include "../vendor/simdjson/simdjson.h"
 #include <string>
+#include <vector>
+#include <iostream>
+#include "FastNoise/FastNoise.h"
 #include "glw.hpp"
+#include "terrain.hpp"
 
 Game::Game(i16 window_width, i16 window_height) {
     _window_width = window_width; _window_height = window_height;
@@ -23,7 +26,14 @@ void Game::Run() {
 }
 
 void Game::Initialize() {
-    LoadDataJSON();
+    TerrainFile file;
+    if (file.Initialize("tests/maps/1.terrain", 3))
+        std::cout << "existed!\n";
+    else
+        std::cout << "created just now!\n";
+
+    exit(0);
+
     shader.Source("./assets/shaders/vert.glsl", "./assets/shaders/frag.glsl");
     shader.Compile();
     std::vector<Vertex> vertices = {
@@ -111,16 +121,5 @@ void Game::UpdateLogic() {
 
 void Game::Cleanup() {
     glw::Cleanup();
-}
-
-// TODO: error handling
-void Game::LoadDataJSON() {
-    using namespace simdjson;
-    ondemand::parser parser;
-    padded_string json = padded_string::load("./assets/data.json");
-    ondemand::document data = parser.iterate(json);
-    //for (auto e: data["items"]) {
-    //    // ...
-    //}
 }
 

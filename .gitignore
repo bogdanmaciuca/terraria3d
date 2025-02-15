@@ -1,5 +1,4 @@
 # clangd bs
-.clangd
-.cache/
+compile_commands.json
 
 /build/*
