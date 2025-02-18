@@ -17,7 +17,11 @@ file(GLOB SRCS
     src/*.cpp 
     vendor/simdjson/simdjson.cpp
 )
-file(GLOB C_SRCS vendor/glad/glad.c)
+file(GLOB C_SRCS
+    vendor/glad/glad.c
+    vendor/noise1234/noise1234.c
+    vendor/lz4/lz4.c
+)
 
 # Include directories
 include_directories(
@@ -25,15 +29,13 @@ include_directories(
     vendor 
     vendor/glad
     vendor/simdjson
+    vendor/noise1234
+    vendor/lz4
 )
 
 # Find GLFW
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
-
-# FastNoise2
-set(FASTNOISE2_NOISETOOL OFF CACHE BOOL "Build Noise Tool" FORCE)
-add_subdirectory(vendor/FastNoise2)
 
 # Create executable
 add_executable(${PROJECT_NAME} ${SRCS} ${C_SRCS})
@@ -43,6 +45,5 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE 
     glfw 
     OpenGL::GL
-    FastNoise
     ${CMAKE_DL_LIBS}  # For Linux DL library
 )

@@ -58,6 +58,9 @@ namespace glw {
         void SetMat4(const std::string& name, const glm::mat4& value) {
             glUniformMatrix4fv(glGetUniformLocation(_ID, name.c_str()), 1, GL_FALSE, &value[0][0]);
         }
+        void SetInt(const std::string& name, int value) {
+            glUniform1i(glGetUniformLocation(_ID, name.c_str()), value);
+        }
     private:
         u32 _ID;
         std::string _vertex_filename, _fragment_filename;
@@ -67,7 +70,7 @@ namespace glw {
     public:
         enum MoveDir { Forward, Backward, Left, Right };
         glm::vec3 pos = glm::vec3(0);
-        float speed = 1.0f;
+        float speed = 3.0f;
         void Initialize(float FOV, float w_h_ratio) {
             _projection = glm::perspective(glm::radians(FOV), w_h_ratio, _z_near, _z_far);
         }

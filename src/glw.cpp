@@ -105,6 +105,10 @@ namespace glw {
         glfwMakeContextCurrent(window);
         assert(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress));
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+        glEnable(GL_POINT_SPRITE);
+        glPointSize(5.0);
     }
     void Cleanup() {
         glfwTerminate();
