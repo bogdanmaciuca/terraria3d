@@ -50,9 +50,9 @@ void RegionFile::GenerateChunkTerrain(u16 chunk_idx) {
 
     u32 voxel_coord_mask = (1 << ChunkSizeLog2) - 1;
     for (u32 i = 0; i < ChunkVoxelCount; i++) {
-        u32 x = _x + chunk_x + (i >> ChunkSizeLog2 * 0) & voxel_coord_mask;
-        u32 y = _y + chunk_y + (i >> ChunkSizeLog2 * 1) & voxel_coord_mask;
-        u32 z = _z + chunk_z + (i >> ChunkSizeLog2 * 2) & voxel_coord_mask;
+        u32 x = _x + chunk_x + ((i >> ChunkSizeLog2 * 0) & voxel_coord_mask);
+        u32 y = _y + chunk_y + ((i >> ChunkSizeLog2 * 1) & voxel_coord_mask);
+        u32 z = _z + chunk_z + ((i >> ChunkSizeLog2 * 2) & voxel_coord_mask);
         chunk.voxels[i].density = noise3(x / 10.0f, y / 10.0f, z / 10.0f);
     }
     WriteChunk(chunk);

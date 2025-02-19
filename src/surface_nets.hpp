@@ -1,19 +1,10 @@
 #pragma once
 #include <vector>
 #include <iostream>
-#include <array>
 #include <glm/glm.hpp>
 #include "int.hpp"
 #include "terrain.hpp"
 #include "debug.hpp"
-
-struct Int3 {
-    i32 x = 0, y = 0, z = 0;
-};
-
-struct Edge {
-    glm::vec3 p0, p1;
-};
 
 constexpr glm::vec3 corners[] = {
     { 0, 0, 0 }, // Bottom face, clockwise
@@ -25,36 +16,6 @@ constexpr glm::vec3 corners[] = {
     { 1, 1, 1 },
     { 0, 1, 1 },
 };
-
-constexpr Edge edges_vert[] = {
-    { corners[0], corners[1] }, // Bottom face
-    { corners[1], corners[2] },
-    { corners[2], corners[3] },
-    { corners[3], corners[0] },
-    { corners[4], corners[5] }, // Top face
-    { corners[5], corners[6] },
-    { corners[6], corners[7] },
-    { corners[7], corners[4] },
-    { corners[0], corners[4] }, // Vertical edges
-    { corners[1], corners[5] },
-    { corners[2], corners[6] },
-    { corners[3], corners[7] }
-};
-
-//constexpr u8 edges[][2] = {
-//    { 0, 1 }, // Bottom face
-//    { 1, 2 },
-//    { 2, 3 },
-//    { 3, 0 },
-//    { 4, 5 }, // Top face
-//    { 5, 6 },
-//    { 6, 7 },
-//    { 7, 4 },
-//    { 0, 4 }, // Vertical edges
-//    { 1, 5 },
-//    { 2, 6 },
-//    { 3, 7 }
-//};
 
 constexpr float coefficients_sizes[256] = {
     0, 3, 3, 4, 3, 6, 4, 5, 3, 4, 6, 5, 4, 5, 5, 4, 3, 4, 6, 5, 6, 7, 7, 6, 6, 5, 9, 6, 7, 6, 8, 5, 3, 6, 4, 5, 6, 9, 5, 6, 6, 7, 7, 6, 7, 8, 6, 5, 4, 5, 5, 4, 7, 8, 6, 5, 7, 6, 8, 5, 8, 7, 7, 4, 3, 6, 6, 7, 4, 7, 5, 6, 6, 7, 9, 8, 5, 6, 6, 5, 6, 7, 9, 8, 7, 8, 8, 7, 9, 8, 12, 9, 8, 7, 9, 6, 4, 7, 5, 6, 5, 8, 4, 5, 7, 8, 8, 7, 6, 7, 5, 4, 5, 6, 6, 5, 6, 7, 5, 4, 8, 7, 9, 6, 7, 6, 6, 3, 3, 6, 6, 7, 6, 9, 7, 8, 4, 5, 7, 6, 5, 6, 6, 5, 4, 5, 7, 6, 7, 8, 8, 7, 5, 4, 8, 5, 6, 5, 7, 4, 6, 9, 7, 8, 9, 12, 8, 9, 7, 8, 8, 7, 8, 9, 7, 6, 5, 6, 6, 5, 8, 9, 7, 6, 6, 5, 7, 4, 7, 6, 6, 3, 4, 7, 7, 8, 5, 8, 6, 7, 5, 6, 8, 7, 4, 5, 5, 4, 5, 6, 8, 7, 6, 7, 7, 6, 6, 5, 9, 6, 5, 4, 6, 3, 5, 8, 6, 7, 6, 9, 5, 6, 6, 7, 7, 6, 5, 6, 4, 3, 4, 5, 5, 4, 5, 6, 4, 3, 5, 4, 6, 3, 4, 3, 3, 0, 
@@ -319,123 +280,32 @@ constexpr u8 coefficients[256][12][2] = {
     {  },
 };
 
-#define POS(x, y, z) ((z) * ChunkSize * ChunkSize + (y) * ChunkSize + (x))
-#define VAL(x, y, z) (chunk.voxels[POS(x, y, z)].density)
-
-
 constexpr i8 surface = 0;
-template <typename TVertex, typename TIndex>
+
+// TODO: Speed up adding indices
 class SurfaceNets {
 public:
+    struct Vertex {
+        glm::vec3 pos;
+        glm::vec3 normal;
+    };
+    struct Face {
+        Face(u32 i0, u32 i1, u32 i2, u32 i3)
+            : i0(i0), i1(i1), i2(i2), i3(i2), i4(i0), i5(i3) {}
+        u32 i0, i1, i2, i3, i4, i5;
+    };
     SurfaceNets() {}
-    void CreateMesh(const Chunk& chunk) {
-        Timer timer("Surface nets");
-        _vertices.clear();
-        _indices.clear();
-        _active_cells.clear();
-        for (i32 z = 0; z < ChunkSize - 1; z++) {
-            for (i32 y = 0; y < ChunkSize - 1; y++) {
-                for (i32 x = 0; x < ChunkSize - 1; x++) {
-                    u8 corner_signs = 0;
-                    i8 corner_values[8];
-                    for (i32 i = 0; i < 8; i++) {
-                        i8 weight = chunk.voxels[POS(x + corners[i].x, y + corners[i].y, z + corners[i].z)].density;
-                        corner_values[i] = weight;
-                        corner_signs |= (1 << i) * ((weight & (1 << 7)) == 0);
-                    }
-                    const float edge_num = coefficients_sizes[corner_signs];
-                    //std::cout << edge_num << "\n";
-                    if (edge_num > 0) {
-                        glm::vec3 vert(0);
-                        const auto coef = coefficients[corner_signs];
-                        for (i32 i = 0; i < edge_num; i++) {
-                            float v0 = corner_values[coef[i][0]];
-                            float v1 = corner_values[coef[i][1]];
-                            vert += corners[coef[i][0]] + (surface - v0) / (v1 - v0) * (corners[coef[i][1]] - corners[coef[i][0]]);
-                        }
-                        vert /= edge_num;
-                        vert += glm::vec3(x, y, z);
-                        _cell_vertices[POS(x, y, z)] = _vertices.size();
-                        _vertices.push_back(vert);
-                        if (edge_num > 1)
-                            _active_cells.push_back({ .edge_type = 0, .pos = {x, y, z} });
-                    }
-                    //glm::vec3 vert(0);
-                    //i32 edge_count = 0;
-                    //for (i32 edge_idx = 0; edge_idx < 12; edge_idx++) {
-                    //    const Edge e = edges_vert[edge_idx];
-                    //    i32 x0 = x + e.p0.x, y0 = y + e.p0.y, z0 = z + e.p0.z;
-                    //    i32 x1 = x + e.p1.x, y1 = y + e.p1.y, z1 = z + e.p1.z;
-                    //    i8 v0 = chunk.voxels[POS(x0, y0, z0)].density;
-                    //    i8 v1 = chunk.voxels[POS(x1, y1, z1)].density;
-                    //    if ((v0 >= surface) != (v1 >= surface)) {
-                    //        glm::vec3 v = glm::vec3(x0, y0, z0) + ((float)surface - v0) / ((float)v1 - v0) * (glm::vec3(x1, y1, z1) - glm::vec3(x0, y0, z0));
-                    //        vert += v;
-                    //        edge_count++;
-                    //    }
-                    //}
-                    //if (edge_count >= 2) {
-                    //    _active_cells.push_back({ .edge_type = 0, .pos = {x, y, z} });
-                    //}
-                    //if (edge_count >= 1) {
-                    //    vert /= edge_count;
-                    //    if (edge_count == 0) {
-                    //        std::cout << vert.x << " " << vert.y << " " << vert.z << " " << edge_count << "\n";
-                    //    }
-                    //    _cell_vertices[POS(x, y, z)] = _vertices.size();
-                    //    _vertices.push_back(vert);
-                    //}
-                }
-            }
-        }
-        
-        for (const auto& e : _active_cells) {
-            if (e.pos.x == 0 || e.pos.y == 0 || e.pos.z == 0 ||
-                    e.pos.x >= ChunkSize - 2 || e.pos.y >= ChunkSize - 2 || e.pos.z >= ChunkSize - 2)
-                continue;
-
-            // Oz
-            //if (e.edge_type & 0b100) {
-            if ((VAL(e.pos.x, e.pos.y, e.pos.z) >= surface) != (VAL(e.pos.x, e.pos.y, e.pos.z+1) >= surface)) {
-                _indices.push_back(_cell_vertices[POS(e.pos.x - 1, e.pos.y - 1, e.pos.z)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x - 0, e.pos.y - 1, e.pos.z)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x - 0, e.pos.y - 0, e.pos.z)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x - 0, e.pos.y - 0, e.pos.z)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x - 1, e.pos.y - 1, e.pos.z)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x - 1, e.pos.y - 0, e.pos.z)]);
-            }
-            // Ox
-            //if (e.edge_type & 0b001) {
-            if ((VAL(e.pos.x, e.pos.y, e.pos.z) >= surface) != (VAL(e.pos.x+1, e.pos.y, e.pos.z) >= surface)) {
-                _indices.push_back(_cell_vertices[POS(e.pos.x, e.pos.y - 1, e.pos.z - 1)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x, e.pos.y - 0, e.pos.z - 1)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x, e.pos.y - 0, e.pos.z - 0)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x, e.pos.y - 0, e.pos.z - 0)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x, e.pos.y - 1, e.pos.z - 1)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x, e.pos.y - 1, e.pos.z - 0)]);
-            }
-            // Oy
-            //if (e.edge_type & 0b010) {
-            if ((VAL(e.pos.x, e.pos.y, e.pos.z) >= surface) != (VAL(e.pos.x, e.pos.y+1, e.pos.z) >= surface)) {
-                _indices.push_back(_cell_vertices[POS(e.pos.x - 1, e.pos.y, e.pos.z - 1)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x - 0, e.pos.y, e.pos.z - 1)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x - 0, e.pos.y, e.pos.z - 0)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x - 0, e.pos.y, e.pos.z - 0)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x - 1, e.pos.y, e.pos.z - 1)]);
-                _indices.push_back(_cell_vertices[POS(e.pos.x - 1, e.pos.y, e.pos.z - 0)]);
-            }
-        }
-    }
-    const std::vector<TVertex>& GetVertices() { return _vertices; }
-    const std::vector<TIndex>& GetIndices() { return _indices; }
+    void CreateMesh(const Chunk& chunk);
+    const std::vector<Vertex>& GetVertices() { return _vertices; }
+    const std::vector<Face>& GetIndices() { return _indices; }
 private:
     struct ActiveCell {
         u8 edge_type = 0;
-        Int3 pos;
+        u8 x, y, z;
     };
-    HeapArray<TIndex, ChunkVoxelCount> _cell_vertices;
-    std::vector<TVertex> _vertices;
-    std::vector<TIndex> _indices;
+    HeapArray<u32, ChunkVoxelCount> _cell_vertices;
+    std::vector<Vertex> _vertices;
+    std::vector<Face> _indices;
     std::vector<ActiveCell> _active_cells;
 };
 

@@ -30,10 +30,10 @@ private:
     glw::VertexArrayObject points_vao;
     glw::VertexArrayObject nets_vao;
     glw::VertexBuffer<glm::vec3> grid_vbo;
-    glw::VertexBuffer<glm::vec3> points_vbo;
-    glw::VertexBuffer<glm::vec3> nets_vbo;
-    glw::IndexBuffer<u32> nets_ibo;
-    SurfaceNets<glm::vec3, u32> surface_nets;
+    glw::VertexBuffer<SurfaceNets::Vertex> points_vbo;
+    glw::VertexBuffer<SurfaceNets::Vertex> nets_vbo;
+    glw::IndexBuffer<SurfaceNets::Face> nets_ibo;
+    SurfaceNets surface_nets;
     Chunk chunk;
     void LoadDataJSON();
 };

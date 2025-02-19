@@ -2,7 +2,6 @@
 #include <cassert>
 #include <string>
 #include <vector>
-#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -34,10 +33,15 @@ namespace glw {
             _length = data.size();
             glBufferData(TBuffer, _length * sizeof(TElem), data.data(), TUsage);
         }
+        void Source(const void* data, std::size_t size, std::size_t length) {
+            _length = length;
+            glBufferData(TBuffer, size, data, TUsage);
+        }
+
         u32 Length() { return _length; }
     private:
         u32 _ID;
-        u32 _length;
+        std::size_t _length;
     };
 
     template<typename TElem, GLenum TUsage = GL_STATIC_DRAW>
