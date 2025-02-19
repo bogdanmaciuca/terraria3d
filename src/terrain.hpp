@@ -23,7 +23,7 @@ private:
 
 struct Voxel {
     u8 type;
-    u8 density;
+    i8 density;
     u8 normal_x, normal_y, normal_z;
 };
 

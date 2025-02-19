@@ -72,7 +72,7 @@ void Game::Initialize() {
 
     points_vbo.Initialize();
     points_vbo.Bind();
-    points_vbo.Source(surface_nets.GetPointsVertices());
+    points_vbo.Source(surface_nets.GetVertices());
 
     points_vao.AddAttrib(GL_FLOAT, 3);
     points_vao.Unbind();
@@ -109,7 +109,6 @@ void Game::RenderFrame() {
     nets_vao.Bind();
     debug_shader.SetVec3("uColor", glm::vec3(0.2, 0.4, 1));
     debug_shader.SetInt("uFade", 0);
-    //glw::DrawIndexed(nets_ibo.Length(), GL_LINES);
     glw::DrawIndexed(nets_ibo.Length(), GL_TRIANGLES);
 }
 

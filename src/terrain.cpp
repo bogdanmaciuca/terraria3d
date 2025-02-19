@@ -76,6 +76,7 @@ void Chunk::GenerateTerrain() {
         u32 x = (i >> ChunkSizeLog2 * 0) & voxel_coord_mask;
         u32 y = (i >> ChunkSizeLog2 * 1) & voxel_coord_mask;
         u32 z = (i >> ChunkSizeLog2 * 2) & voxel_coord_mask;
-        voxels[i].density = (0.5f + 0.5f * noise3(x / 10.0f, y / 10.0f, z / 10.0f)) * 255.0f;
+        float val = noise3(x / 10.0f, y / 10.0f, z / 10.0f);
+        voxels[i].density = val * 127.0f;
     }
 }
