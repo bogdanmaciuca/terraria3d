@@ -10,6 +10,6 @@ uniform mat4 uModel;
 
 void main() {
     gl_Position = uViewProj * uModel * vec4(aPos, 1.0);
-    Normal = mat3(transpose(inverse(uModel))) * aNormal;  
+    Normal = normalize(mat3(transpose(inverse(uModel))) * aNormal);
 }
 

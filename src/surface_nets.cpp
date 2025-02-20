@@ -18,22 +18,35 @@ void SurfaceNets::CreateMesh(const Chunk& chunk) {
             for (i32 x = 0; x < ChunkSize - 1; x++) {
                 u8 corner_signs = 0;
                 i8 corner_values[8];
+                glm::vec3 corner_normals[8];
                 for (i32 i = 0; i < 8; i++) {
                     i8 weight = chunk.voxels[Pos(x + corners[i][0], y + cornersInt3[i][1], z + cornersInt3[i][2])].density;
                     corner_values[i] = weight;
                     corner_signs |= (1 << i) * ((weight & (1 << 7)) == 0);
                 }
+                if (x != 0 && y != 0 && z != 0 && x != ChunkSize-1 && y != ChunkSize-1 && z != ChunkSize-1) {
+                    for (i32 i = 0; i < 8; i++) {
+                        corner_normals[i] = glm::vec3(
+                                Val(x + cornersInt3[i][0] - 1, y + cornersInt3[i][1], z + cornersInt3[i][2]) -  Val(x + cornersInt3[i][0] + 1, y + cornersInt3[i][1], z + cornersInt3[i][2]),
+                                Val(x + cornersInt3[i][0], y + cornersInt3[i][1] - 1, z + cornersInt3[i][2]) -  Val(x + cornersInt3[i][0], y + cornersInt3[i][1] + 1, z + cornersInt3[i][2]),
+                                Val(x + cornersInt3[i][0], y + cornersInt3[i][1], z + cornersInt3[i][2] - 1) -  Val(x + cornersInt3[i][0], y + cornersInt3[i][1], z + cornersInt3[i][2] + 1)
+                                );
+                    }
+                }
                 const float edge_num = coefficients_sizes[corner_signs];
                 if (edge_num > 0) {
-                    Vertex vert = { .pos = glm::vec3(0), .normal = glm::vec3(0) };
+                    Vertex vert = { .pos = glm::vec3(0) };
                     const auto coef = coefficients[corner_signs];
                     for (i32 i = 0; i < edge_num; i++) {
                         i8 v0 = corner_values[coef[i][0]];
                         i8 v1 = corner_values[coef[i][1]];
-                        vert.pos += corners[coef[i][0]] + (float)(surface - v0) / (v1 - v0) * (corners[coef[i][1]] - corners[coef[i][0]]);
+                        float lerp_t = static_cast<float>((surface - v0)) / (v1 - v0);
+                        vert.pos += corners[coef[i][0]] + lerp_t * (corners[coef[i][1]] - corners[coef[i][0]]);
+                        vert.normal += corner_normals[coef[i][0]] + lerp_t * (corner_normals[coef[i][1]] - corner_normals[coef[i][0]]);
                     }
                     vert.pos /= edge_num;
                     vert.pos += glm::vec3(x, y, z);
+                    vert.normal /= edge_num;
                     _cell_indices[Pos(x, y, z)] = _vertices.size();
                     _vertices.push_back(vert);
                     if (edge_num > 1) {

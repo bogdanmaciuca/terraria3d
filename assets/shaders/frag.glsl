@@ -10,9 +10,10 @@ void main() {
     vec3 ambient = ambient_coef * vec3(1);
 
     vec3 light_color = vec3(1);
-    vec3 diffuse = light_color * max(dot(normalize(Normal), uLightDir), 0.0);
+    vec3 diffuse = light_color * max(-dot(Normal, normalize(uLightDir)), 0.0);
 
-    vec3 object_color = vec3(1, 0, 0);
+    vec3 object_color = vec3(22, 140, 73) / 255.0;
     FragColor = vec4((ambient + diffuse) * object_color, 1);
+    //FragColor = vec4(uLightDir, 1);
 }
 

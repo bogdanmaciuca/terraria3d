@@ -31,6 +31,8 @@ void Game::Run() {
 void Game::Initialize() {
     shader.Source("./assets/shaders/vert.glsl", "./assets/shaders/frag.glsl");
     shader.Compile();
+    shader.Bind();
+    shader.SetVec3("uLightDir", glm::vec3(1, 1, 0));
     debug_shader.Source("./assets/shaders/debug_vert.glsl", "./assets/shaders/debug_frag.glsl");
     debug_shader.Compile();
 
@@ -78,7 +80,7 @@ void Game::RenderFrame() {
     points_vao.Bind();
     debug_shader.SetVec3("uColor", glm::vec3(1, 0, 0));
     debug_shader.SetInt("uFade", 0);
-    glw::Draw(points_vbo.Length(), GL_POINTS);
+    //glw::Draw(points_vbo.Length(), GL_POINTS);
     nets_vao.Bind();
 
     shader.Bind();
