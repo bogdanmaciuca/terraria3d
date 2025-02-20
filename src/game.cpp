@@ -84,7 +84,7 @@ void Game::RenderFrame() {
     shader.Bind();
     shader.SetMat4("uViewProj", camera.GetViewProjection());
     shader.SetMat4("uModel", glm::mat4(1));
-    glw::DrawIndexed(6 * nets_ibo.Length(), GL_TRIANGLES);
+    glw::DrawIndexed(6 * nets_ibo.Length(), GL_TRIANGLES, GL_UNSIGNED_SHORT);
 }
 
 void Game::UpdateLogic() {

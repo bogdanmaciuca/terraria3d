@@ -33,11 +33,10 @@ namespace glw {
             _length = data.size();
             glBufferData(TBuffer, _length * sizeof(TElem), data.data(), TUsage);
         }
-        void Source(const void* data, std::size_t size, std::size_t length) {
+        void Source(const void* data, std::size_t size, std::size_t length = 0) {
             _length = length;
             glBufferData(TBuffer, size, data, TUsage);
         }
-
         u32 Length() { return _length; }
     private:
         u32 _ID;

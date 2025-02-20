@@ -1,12 +1,23 @@
 #pragma once
 #include <vector>
-#include <iostream>
 #include <glm/glm.hpp>
 #include "int.hpp"
 #include "terrain.hpp"
+#include "heap_array.hpp"
 #include "debug.hpp"
 
 constexpr glm::vec3 corners[] = {
+    { 0, 0, 0 }, // Bottom face, clockwise
+    { 1, 0, 0 },
+    { 1, 0, 1 },
+    { 0, 0, 1 },
+    { 0, 1, 0 }, // Top face, clockwise
+    { 1, 1, 0 },
+    { 1, 1, 1 },
+    { 0, 1, 1 },
+};
+
+constexpr i32 cornersInt3[][3] = {
     { 0, 0, 0 }, // Bottom face, clockwise
     { 1, 0, 0 },
     { 1, 0, 1 },
@@ -282,28 +293,27 @@ constexpr u8 coefficients[256][12][2] = {
 
 constexpr i8 surface = 0;
 
-// TODO: Speed up adding indices
+// TODO: typedef the indices type
 class SurfaceNets {
 public:
     struct Vertex {
         glm::vec3 pos;
         glm::vec3 normal;
     };
+    using Index = u16;
     struct Face {
-        Face(u32 i0, u32 i1, u32 i2, u32 i3)
+        Face(Index i0, Index i1, Index i2, Index i3)
             : i0(i0), i1(i1), i2(i2), i3(i2), i4(i0), i5(i3) {}
-        u32 i0, i1, i2, i3, i4, i5;
+        Index i0, i1, i2, i3, i4, i5;
     };
-    SurfaceNets() {}
     void CreateMesh(const Chunk& chunk);
-    const std::vector<Vertex>& GetVertices() { return _vertices; }
-    const std::vector<Face>& GetIndices() { return _indices; }
+    const std::vector<Vertex>&  GetVertices() { return _vertices; }
+    const std::vector<Face>&  GetIndices() { return _indices; }
 private:
     struct ActiveCell {
-        u8 edge_type = 0;
         u8 x, y, z;
     };
-    HeapArray<u32, ChunkVoxelCount> _cell_vertices;
+    HeapArray<Index, ChunkVoxelCount> _cell_indices;
     std::vector<Vertex> _vertices;
     std::vector<Face> _indices;
     std::vector<ActiveCell> _active_cells;
