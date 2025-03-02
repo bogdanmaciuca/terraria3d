@@ -6,14 +6,14 @@ edges = [
 
 lookup_table = []
 for case in range(256):
-    #print('{ ', end='')
+    print('{ ', end='')
     num = 0
     for edge in edges:
         if ((case & (1 << edge[0])) != 0) > ((case & (1 << edge[1])) != 0):
-            #print(f'{{{edge[0]}, {edge[1]}}}', end=', ')
+            print(f'{{{edge[0]}, {edge[1]}}}', end=', ')
             num += 1
         elif ((case & (1 << edge[0])) != 0) < ((case & (1 << edge[1])) != 0):
-            #print(f'{{{edge[1]}, {edge[0]}}}', end=', ')
+            print(f'{{{edge[1]}, {edge[0]}}}', end=', ')
             num += 1
-    #print(' },')
-    print(f'{num}, ', end='')
+    print(' },')
+    #print(f'{num}, ', end='')

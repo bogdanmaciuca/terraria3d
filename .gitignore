@@ -5,4 +5,5 @@ compile_commands.json
 # perf
 perf.*
 
-/build/*
+build/
+tests/

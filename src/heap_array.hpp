@@ -7,6 +7,7 @@ struct HeapArray {
 public:
     HeapArray() { _ptr = static_cast<TElem*>(std::malloc(sizeof(TElem) * TSize)); }
     ~HeapArray() { free(_ptr); }
+    HeapArray(HeapArray&& other) : _ptr(other._ptr) { other._ptr = nullptr; }
     TElem& operator[](std::size_t idx) { return _ptr[idx]; }
     const TElem& operator[](std::size_t idx) const { return _ptr[idx]; }
     std::size_t Size() { return TSize; }

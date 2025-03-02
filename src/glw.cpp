@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream> // TODO: using logging library and only include it on debug builds
 #include <glad/glad.h>
+#include "core.hpp"
 
 namespace glw {
     void VertexArrayObject::AddAttrib(GLenum type, i32 num) {
@@ -17,16 +18,7 @@ namespace glw {
         _idx++;
         _offset += num * size;
     }
-
     // TODO: Make this faster and place it in a separate file if another file needs it
-    void ReadFile(const std::string& filename, std::string* out) {
-        std::ifstream file(filename);
-        assert(file.is_open());
-        std::string line;
-        while(std::getline(file, line))
-            (*out) += line + '\n';
-        file.close();
-    }
     void CheckErrors(unsigned int shader, const std::string& filename) {
         int success;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
@@ -41,7 +33,7 @@ namespace glw {
     unsigned int CreateShader(GLenum type, const std::string& filename) {
         unsigned int shader = glCreateShader(type);
         std::string source;
-        ReadFile(filename, &source);
+        core::File(filename.c_str()).ReadAll(&source);
         const char* source_c_str = source.c_str();
         glShaderSource(shader, 1, &source_c_str, nullptr);
         glCompileShader(shader);
@@ -107,8 +99,10 @@ namespace glw {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
-        glEnable(GL_POINT_SPRITE);
+        glEnable(GL_POINT_SPRITE); // Debug
         glPointSize(5.0);
+        //glEnable(GL_CULL_FACE);
+        //glCullFace(GL_BACK);
     }
     void Cleanup() {
         glfwTerminate();

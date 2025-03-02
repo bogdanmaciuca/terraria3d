@@ -8,12 +8,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "int.hpp"
 
+// TODO: cleanup OpenGL without destructors
+// TODO: initialize as many resources at once as possible
 namespace glw {
     inline GLFWwindow* window;
 
     struct VertexArrayObject {
     public:
         void Initialize(i32 stride) { glGenVertexArrays(1, &_ID); _stride = stride; }
+        //~VertexArrayObject() { glDeleteVertexArrays(1, &_ID); }
         void Bind() { glBindVertexArray(_ID); }
         void AddAttrib(GLenum type, i32 num);
         static void Unbind() { glBindVertexArray(0); }
@@ -28,6 +31,7 @@ namespace glw {
     struct Buffer {
     public:
         void Initialize() { glGenBuffers(1, &_ID); }
+        //~Buffer() { glDeleteBuffers(1, &_ID); }
         void Bind() { glBindBuffer(TBuffer, _ID); }
         void Source(const std::vector<TElem>& data) {
             _length = data.size();

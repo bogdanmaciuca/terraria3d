@@ -2,9 +2,8 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "int.hpp"
-#include "terrain.hpp"
 #include "heap_array.hpp"
-#include "debug.hpp"
+#include "core.hpp"
 
 constexpr glm::vec3 corners[] = {
     { 0, 0, 0 }, // Bottom face, clockwise
@@ -294,28 +293,28 @@ constexpr u8 edges_list[256][12][2] = {
 constexpr i8 surface = 0;
 
 // TODO: typedef the indices type
-class SurfaceNets {
+struct SurfaceNets {
 public:
-    struct Vertex {
-        glm::vec3 pos;
-        glm::vec3 normal;
-    };
-    using Index = u16;
-    struct Face {
-        Face(Index i0, Index i1, Index i2, Index i3)
-            : i0(i0), i1(i1), i2(i2), i3(i2), i4(i0), i5(i3) {}
-        Index i0, i1, i2, i3, i4, i5;
-    };
-    void CreateMesh(const Chunk& chunk);
-    const std::vector<Vertex>&  GetVertices() { return _vertices; }
-    const std::vector<Face>&  GetIndices() { return _indices; }
+    void CreateMesh(const HeapArray<core::Voxel, core::ChunkVoxelCount>& voxels);
+    const std::vector<core::VoxelVertex>& GetVertices() { return _vertices; }
+    const std::vector<core::VoxelIndex>& GetIndices() { return _indices; }
+
+    static SurfaceNets& GetInstance() {
+        static SurfaceNets surface_nets;
+        return surface_nets;
+    }
+    SurfaceNets(SurfaceNets const&) = delete;
+    void operator=(SurfaceNets const&) = delete;
 private:
     struct ActiveCell {
         u8 x, y, z;
     };
-    HeapArray<Index, ChunkVoxelCount> _cell_indices;
-    std::vector<Vertex> _vertices;
-    std::vector<Face> _indices;
+    HeapArray<core::VoxelIndex, core::ChunkVoxelCount> _cell_indices;
+    std::vector<core::VoxelVertex> _vertices;
+    std::vector<core::VoxelIndex> _indices;
     std::vector<ActiveCell> _active_cells;
+    void PushFace(core::VoxelIndex i0, core::VoxelIndex i1, core::VoxelIndex i2, core::VoxelIndex i3, bool reverse);
+
+    SurfaceNets() {}
 };
 

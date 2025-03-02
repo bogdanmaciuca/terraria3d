@@ -5,7 +5,7 @@ project(t3d LANGUAGES CXX C)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-add_compile_options(-Wall -Wextra -g -O3)
+add_compile_options(-Wall -Wextra -O0 -g)
 add_compile_definitions(GLFW_INCLUDE_NONE)
 
 # Build directory (not necessary but matches your structure)

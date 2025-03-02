@@ -1,40 +1,30 @@
 #pragma once
-#include <vector>
+#include <string>
 #include "int.hpp"
 #include "glw.hpp"
 #include "gameobjects.hpp"
-#include "terrain.hpp"
 #include "surface_nets.hpp"
+#include "chunk.hpp"
 
 struct Game {
-    Game(i16 window_width, i16 window_height);
+    Game(i16 window_width, i16 window_height, const std::string& world_path);
+    ~Game();
     void Run();
     void Cleanup();
 private:
     i16 _window_width, _window_height;
     float _delta_time;
+    std::string _world_path;
     void Initialize();
     void RenderFrame();
     void UpdateLogic();
 
-    struct Vertex {
-        float x, y, z;
-        float nx, ny, nz;
-    };
     float light_theta = 0;
     std::vector<Item> items;
     glw::Shader shader;
     glw::Shader debug_shader;
     glw::Camera camera;
-    glw::VertexArrayObject grid_vao;
-    glw::VertexArrayObject points_vao;
-    glw::VertexArrayObject nets_vao;
-    glw::VertexBuffer<glm::vec3> grid_vbo;
-    glw::VertexBuffer<SurfaceNets::Vertex> points_vbo;
-    glw::VertexBuffer<SurfaceNets::Vertex> nets_vbo;
-    glw::IndexBuffer<SurfaceNets::Face> nets_ibo;
-    SurfaceNets surface_nets;
-    Chunk chunk;
+    ChunkManager chunk_manager;
     void LoadDataJSON();
 };
 
