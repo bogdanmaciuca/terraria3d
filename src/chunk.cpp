@@ -11,10 +11,6 @@
 #include "core.hpp"
 #include "surface_nets.hpp"
 
-enum {
-    MaxRegionFilesOpenAtOnce = 8
-};
-
 Chunk::Chunk() {
     _VAO.Initialize(sizeof(core::VoxelVertex));
     _VBO.Initialize();
@@ -113,7 +109,7 @@ void ChunkManager::LoadChunk(const glm::ivec3& pos) {
     );
     if (region_file == _region_files.end()) {
         _region_files.emplace_back(filename);
-        if (_region_files.size() > MaxRegionFilesOpenAtOnce)
+        if (_region_files.size() > core::MaxRegionFilesOpenAtOnce)
             _region_files.erase(_region_files.begin());
         region_file = std::prev(_region_files.end());
     }
@@ -169,8 +165,7 @@ void GenerateChunkTerrain(HeapArray<core::Voxel, core::ChunkVoxelCount>* voxels,
                 float val = noise2(
                     (cx * (float)(core::ChunkSize - 2) + x) / 10.0f,
                     (cz * (float)(core::ChunkSize - 2) + z) / 10.0f
-                );
-                val = val * 10.0f + 10.0f;
+                ) * 4.0 + 4.0f;
                 val = (cy * (float)(core::ChunkSize - 2) + y) - val;
                 val = glm::clamp(val, -1.0f, 1.0f);
                 const i32 idx =

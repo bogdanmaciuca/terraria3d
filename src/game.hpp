@@ -12,9 +12,24 @@ struct Game {
     void Run();
     void Cleanup();
 private:
+    static constexpr glm::vec4 _framebuf_vertices[] = {
+        { -1.0f,  1.0f, 0.0f, 1.0f },
+        { -1.0f, -1.0f, 0.0f, 0.0f },
+        {  1.0f, -1.0f, 1.0f, 0.0f },
+
+        { -1.0f,  1.0f, 0.0f, 1.0f },
+        {  1.0f, -1.0f, 1.0f, 0.0f },
+        {  1.0f,  1.0f, 1.0f, 1.0f }
+    };
     i16 _window_width, _window_height;
     float _delta_time;
     std::string _world_path;
+    glw::Framebuffer _framebuf;
+    glw::Texture _framebuf_tex;
+    glw::Renderbuffer _renderbuf;
+    glw::VertexArrayObject _framebuf_vao;
+    glw::VertexBuffer<glm::vec4> _framebuf_vbo;
+    glw::Shader _framebuf_shader;
     void Initialize();
     void RenderFrame();
     void UpdateLogic();

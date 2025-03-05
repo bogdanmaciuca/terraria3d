@@ -12,6 +12,8 @@ namespace core {
     };
 
     enum {
+        Pixelization = 1,
+
         ChunkSize = 32, ChunkSizeLog2 = 5,
         ChunkVoxelCount = ChunkSize * ChunkSize * ChunkSize,
         ChunkByteSize = ChunkVoxelCount * sizeof(Voxel),
@@ -24,7 +26,8 @@ namespace core {
         WorldHeight = WorldHeightRegions * RegionSize, // in chunks
 
         RenderDistanceChunks = 8,
-        RenderDistance = ChunkSize * RenderDistanceChunks
+        RenderDistance = ChunkSize * RenderDistanceChunks,
+        MaxRegionFilesOpenAtOnce = 8
     };
 
     // TODO: Is this really necessary?

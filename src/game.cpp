@@ -12,6 +12,40 @@ Game::Game(i16 window_width, i16 window_height, const std::string& world_path) {
     _window_width = window_width; _window_height = window_height;
     _world_path = std::string(world_path);
     glw::Initialize(window_width, window_height);
+    _framebuf.Initialize();
+    _framebuf.Bind();
+    _framebuf_tex.Initialize(
+        window_width / core::Pixelization,
+        window_height / core::Pixelization
+    );
+    _framebuf.AddTexture(_framebuf_tex);
+    _renderbuf.Initialize(
+        window_width / core::Pixelization,
+        window_height / core::Pixelization
+    );
+    _renderbuf.AttachToFramebuffer();
+    assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+
+    _framebuf_shader.Source(
+        "./assets/shaders/framebuffer_vert.glsl",
+        "./assets/shaders/framebuffer_frag.glsl"
+    );
+    _framebuf_shader.Compile();
+    _framebuf_shader.Bind();
+    _framebuf_shader.SetInt("screenTexture", 0);
+
+    _framebuf_vao.Initialize(sizeof(glm::vec4));
+    _framebuf_vao.Bind();
+    _framebuf_vbo.Initialize();
+    _framebuf_vbo.Bind();
+    _framebuf_vbo.Source(
+        &_framebuf_vertices[0], sizeof(_framebuf_vertices),
+        sizeof(_framebuf_vertices) / sizeof(glm::vec4)
+    );
+    _framebuf_vbo.Bind();
+    _framebuf_vao.AddAttrib(GL_FLOAT, 2); // Position
+    _framebuf_vao.AddAttrib(GL_FLOAT, 2); // UV coords
+
     Initialize();
 }
 Game::~Game() {
@@ -24,9 +58,27 @@ void Game::Run() {
         double then = now;
         now = glfwGetTime();
         _delta_time = now - then;
+
+        glEnable(GL_DEPTH_TEST);
+        glViewport(
+            0, 0,
+            _window_width / core::Pixelization,
+            _window_height / core::Pixelization
+        );
+        _framebuf.Bind();
         RenderFrame();
+        _framebuf.BindDefault();
+        glDisable(GL_DEPTH_TEST);
+        glViewport(0, 0, _window_width, _window_height);
+
+        _framebuf_shader.Bind();
+        _framebuf_vao.Bind();
+        _framebuf_tex.Bind();
+        glw::Draw(_framebuf_vbo.Length());
+
         glfwSwapBuffers(glw::window);
         glfwPollEvents();
+
         if (glfwGetKey(glw::window, GLFW_KEY_R)) {
             shader.Reload();
         }
@@ -36,22 +88,18 @@ void Game::Run() {
 
 void Game::Initialize() {
     chunk_manager.Initialize(_world_path);
+
     shader.Source("./assets/shaders/vert.glsl", "./assets/shaders/frag.glsl");
     shader.Compile();
-    shader.Bind();
-    shader.SetVec3("uLightDir", glm::vec3(1, 1, 0));
-    debug_shader.Source(
-        "./assets/shaders/debug_vert.glsl",
-        "./assets/shaders/debug_frag.glsl"
-    );
+
+    debug_shader.Source("./assets/shaders/debug_vert.glsl", "./assets/shaders/debug_frag.glsl");
     debug_shader.Compile();
 
     camera.Initialize(77.0f, (float)_window_width / _window_height);
-
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 }
 
 void Game::RenderFrame() {
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shader.Bind();
     shader.SetMat4("uViewProj", camera.GetViewProjection());

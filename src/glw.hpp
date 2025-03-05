@@ -13,25 +13,29 @@
 namespace glw {
     inline GLFWwindow* window;
 
-    struct VertexArrayObject {
+    struct GLObject {
     public:
-        void Initialize(i32 stride) { glGenVertexArrays(1, &_ID); _stride = stride; }
-        //~VertexArrayObject() { glDeleteVertexArrays(1, &_ID); }
-        void Bind() { glBindVertexArray(_ID); }
-        void AddAttrib(GLenum type, i32 num);
-        static void Unbind() { glBindVertexArray(0); }
-    private:
+        u32 GetID() const { return _ID; }
+    protected:
         u32 _ID;
+    };
+
+    struct VertexArrayObject : public GLObject {
+    public:
+        void Initialize(i32 stride);
+        void Bind();
+        void AddAttrib(GLenum type, i32 num);
+        static void Unbind();
+    private:
         i32 _stride;  // TODO: maybe change to smaller data type
         i32 _idx = 0;
         i32 _offset = 0;
     };
 
     template<GLenum TBuffer, typename TElem, GLenum TUsage>
-    struct Buffer {
+    struct Buffer : public GLObject {
     public:
         void Initialize() { glGenBuffers(1, &_ID); }
-        //~Buffer() { glDeleteBuffers(1, &_ID); }
         void Bind() { glBindBuffer(TBuffer, _ID); }
         void Source(const std::vector<TElem>& data) {
             _length = data.size();
@@ -43,7 +47,6 @@ namespace glw {
         }
         u32 Length() { return _length; }
     private:
-        u32 _ID;
         std::size_t _length;
     };
 
@@ -53,37 +56,52 @@ namespace glw {
     template<typename TElem, GLenum TUsage = GL_STATIC_DRAW>
     using IndexBuffer = Buffer<GL_ELEMENT_ARRAY_BUFFER, TElem, TUsage>;
 
-    struct Shader {
+    struct Shader : public GLObject {
     public:
         void Source(const std::string& vertex_filename, const std::string& fragment_filename);
         void Compile();
         void Reload();
         void Bind() { glUseProgram(_ID); }
-        void SetVec3(const std::string& name, const glm::vec3& value) {
-            glUniform3fv(glGetUniformLocation(_ID, name.c_str()), 1, &value[0]); 
-        }
-        void SetMat4(const std::string& name, const glm::mat4& value) {
-            glUniformMatrix4fv(glGetUniformLocation(_ID, name.c_str()), 1, GL_FALSE, &value[0][0]);
-        }
-        void SetInt(const std::string& name, int value) {
-            glUniform1i(glGetUniformLocation(_ID, name.c_str()), value);
-        }
+        void SetVec3(const std::string& name, const glm::vec3& value);
+        void SetMat4(const std::string& name, const glm::mat4& value);
+        void SetInt(const std::string& name, int value);
     private:
-        u32 _ID;
         std::string _vertex_filename, _fragment_filename;
+    };
+
+    struct Texture : public GLObject {
+    public:
+        void Initialize(u32 width, u32 height);
+        void Bind();
+    private:
+        u32 _width, _height;
+    };
+
+    struct Framebuffer : public GLObject {
+    public:
+        void Initialize();
+        void Bind(GLenum target = GL_FRAMEBUFFER);
+        void AddTexture(const Texture& texture);
+        static void BindDefault(GLenum target = GL_FRAMEBUFFER);
+    private:
+    };
+
+    // TODO: Maybe store width and height here (if ever needed)
+    struct Renderbuffer : public GLObject {
+    public:
+        void Initialize(u32 width, u32 height);
+        void Bind(GLenum target = GL_RENDERBUFFER);
+        void AttachToFramebuffer();
     };
 
     struct Camera {
     public:
         enum MoveDir { Forward, Backward, Left, Right };
-        glm::vec3 pos = glm::vec3(0);
-        float speed = 3.0f;
-        void Initialize(float FOV, float w_h_ratio) {
-            _projection = glm::perspective(glm::radians(FOV), w_h_ratio, _z_near, _z_far);
-        }
-        glm::mat4 GetViewMatrix() { return glm::lookAt(pos, pos + _front, _up); }
-        glm::mat4 GetViewProjection() { return _projection * GetViewMatrix(); }
-        //inline glm::mat4 GetViewProjection() { return GetViewMatrix() * _projection; }
+        glm::vec3 pos = glm::vec3(0); // TODO: maybe make these
+        float speed = 3.0f;           // private
+        void Initialize(float FOV, float w_h_ratio);
+        glm::mat4 GetViewMatrix();
+        glm::mat4 GetViewProjection();
         void ProcessMouse();
         void Move(MoveDir dir, float delta_time);
     private:
