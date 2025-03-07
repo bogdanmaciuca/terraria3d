@@ -45,11 +45,11 @@ void SurfaceNets::CreateMesh(const HeapArray<core::Voxel, core::ChunkVoxelCount>
                 u8 corner_signs = 0;
                 i8 corner_values[8];
                 for (i32 i = 0; i < 8; i++) {
-                    i8 weight = voxels[Pos(x + corners[i][0], y + cornersInt3[i][1], z + cornersInt3[i][2])].density;
+                    i8 weight = voxels[Pos(x + corners_int[i].x, y + corners_int[i].y, z + corners_int[i].z)].density;
                     corner_values[i] = weight;
                     corner_signs |= (1 << i) * ((weight & (1 << 7)) == 0);
                 }
-                const float edge_num = coefficients_sizes[corner_signs];
+                const i32 edge_num = coefficients_sizes[corner_signs];
                 if (edge_num > 0) {
                     core::VoxelVertex vert = { .pos = glm::vec3(0) };
 
@@ -57,7 +57,7 @@ void SurfaceNets::CreateMesh(const HeapArray<core::Voxel, core::ChunkVoxelCount>
                     for (i32 i = 0; i < edge_num; i++) {
                         i8 v0 = corner_values[edges[i][0]];
                         i8 v1 = corner_values[edges[i][1]];
-                        float lerp_t = static_cast<float>((surface - v0)) / (v1 - v0);
+                        float lerp_t = (float)((surface - v0)) / (float)(v1 - v0);
                         vert.pos += corners[edges[i][0]] + lerp_t * (corners[edges[i][1]] - corners[edges[i][0]]);
                     }
                     vert.pos /= edge_num;

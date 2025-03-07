@@ -2,12 +2,14 @@
 #include <string>
 #include <cstdio>
 #include <iostream>
+#include "clue/clue.hpp"
 
 namespace core {
     File::File(const char* filename, const char* options) {
         Open(filename, options);
     }
     File::~File() {
+        LOG_INFO("File: Destructor called!");
         std::fclose(_handle);
     }
     void File::Open(const char* filename, const char* options) {
@@ -20,8 +22,8 @@ namespace core {
     void File::Close() {
         std::fclose(_handle);
     }
-    void File::MoveAt(std::size_t offset, u32 origin) {
-        std::fseek(_handle, offset, origin);
+    void File::MoveAt(u32 offset, u32 origin) {
+        std::fseek(_handle, (i32)offset, (i32)origin);
     }
     std::size_t File::Tell() {
         return ftell(_handle);

@@ -16,12 +16,13 @@ namespace glw {
     void VertexArrayObject::AddAttrib(GLenum type, i32 num) {
         glVertexAttribPointer(_idx, num, type, GL_FALSE, _stride, reinterpret_cast<void*>(_offset));
         glEnableVertexAttribArray(_idx);
-        u8 size;
+        u8 size = 0;
         switch(type) {
             case GL_BYTE: case GL_UNSIGNED_BYTE: size = 1; break;
             case GL_SHORT: case GL_UNSIGNED_SHORT: size = 2; break;
             case GL_INT: case GL_UNSIGNED_INT: case GL_FLOAT: size = 4; break;
         }
+        assert(size != 0);
         _idx++;
         _offset += num * size;
     }
@@ -80,7 +81,7 @@ namespace glw {
     }
 
     // Texture
-    void Texture::Initialize(u32 width, u32 height) {
+    void Texture::Initialize(i32 width, i32 height) {
         _width = width; _height = height;
         glGenTextures(1, &_ID);
         glBindTexture(GL_TEXTURE_2D, _ID);
@@ -108,7 +109,7 @@ namespace glw {
     }
 
     // Renderbuffer
-    void Renderbuffer::Initialize(u32 width, u32 height) {
+    void Renderbuffer::Initialize(i32 width, i32 height) {
         glGenRenderbuffers(1, &_ID);
         glBindRenderbuffer(GL_RENDERBUFFER, _ID);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
@@ -133,21 +134,22 @@ namespace glw {
         return glm::lookAt(pos, pos + _front, _up);
     }
     glm::mat4 Camera::GetViewProjection() {
-        return _projection * GetViewMatrix(); }
+        return _projection * GetViewMatrix();
+    }
     void Camera::ProcessMouse() {
         double mouse_x, mouse_y;
         glfwGetCursorPos(window, &mouse_x, &mouse_y);
-        float delta_x = mouse_x - _last_mouse_x;
-        float delta_y = mouse_y - _last_mouse_y;
+        float delta_x = (float)(mouse_x - _last_mouse_x);
+        float delta_y = (float)(mouse_y - _last_mouse_y);
         _yaw += delta_x * _sensitivity;
         _pitch -= delta_y * _sensitivity;
         _last_mouse_x = mouse_x; _last_mouse_y = mouse_y;
 
         _pitch = glm::clamp(_pitch, -89.0f, 89.0f);
 
-        _front.x = cos(glm::radians(_yaw)) * cos(glm::radians(_pitch));
-        _front.y = sin(glm::radians(_pitch));
-        _front.z = sin(glm::radians(_yaw)) * cos(glm::radians(_pitch));
+        _front.x = glm::cos(glm::radians(_yaw)) * glm::cos(glm::radians(_pitch));
+        _front.y = glm::sin(glm::radians(_pitch));
+        _front.z = glm::sin(glm::radians(_yaw)) * glm::cos(glm::radians(_pitch));
         _front = glm::normalize(_front);
     }
     void Camera::Move(MoveDir dir, float delta_time) {
@@ -159,7 +161,7 @@ namespace glw {
         }
     }
 
-    void Initialize(i16 window_width, i16 window_height) {
+    void Initialize(i32 window_width, i32 window_height) {
         assert(glfwInit() != 0);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -177,6 +179,12 @@ namespace glw {
     }
     void Cleanup() {
         glfwTerminate();
+    }
+    void DrawIndexed(u32 indices_num, GLenum mode, GLenum type) {
+        glDrawElements(mode, (i32)indices_num, type, 0);
+    }
+    void Draw(u32 vertices_num, GLenum mode) {
+        glDrawArrays(mode, 0, (i32)vertices_num);
     }
 }
 

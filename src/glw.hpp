@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "int.hpp"
+#include <cmath>
 
 // TODO: cleanup OpenGL without destructors
 // TODO: initialize as many resources at once as possible
@@ -71,7 +72,7 @@ namespace glw {
 
     struct Texture : public GLObject {
     public:
-        void Initialize(u32 width, u32 height);
+        void Initialize(i32 width, i32 height);
         void Bind();
     private:
         u32 _width, _height;
@@ -89,7 +90,7 @@ namespace glw {
     // TODO: Maybe store width and height here (if ever needed)
     struct Renderbuffer : public GLObject {
     public:
-        void Initialize(u32 width, u32 height);
+        void Initialize(i32 width, i32 height);
         void Bind(GLenum target = GL_RENDERBUFFER);
         void AttachToFramebuffer();
     };
@@ -107,21 +108,17 @@ namespace glw {
     private:
         double _last_mouse_x = 0 , _last_mouse_y = 0;
         float _sensitivity = 0.25f;
-        float _yaw, _pitch;
+        float _yaw = 0, _pitch = 0;
         const glm::vec3 _up = glm::vec3(0, 1, 0);
-        glm::vec3 _front;
+        glm::vec3 _front = glm::vec3(0, 0, 1);
         glm::mat4 _projection;
         const float _z_near = 0.1f;
-        const float _z_far = 100.0f;
+        const float _z_far = 800.0f;
     };
 
-    void Initialize(i16 window_width, i16 window_height);
+    void Initialize(i32 window_width, i32 window_height);
     void Cleanup();
-    inline void DrawIndexed(i32 indices_num, GLenum mode = GL_TRIANGLES, GLenum type = GL_UNSIGNED_INT) {
-        glDrawElements(mode, indices_num, type, 0);
-    }
-    inline void Draw(i32 vertices_num, GLenum mode = GL_TRIANGLES) {
-        glDrawArrays(mode, 0, vertices_num);
-    }
+    void DrawIndexed(u32 indices_num, GLenum mode = GL_TRIANGLES, GLenum type = GL_UNSIGNED_INT);
+    void Draw(u32 vertices_num, GLenum mode = GL_TRIANGLES);
 }
 

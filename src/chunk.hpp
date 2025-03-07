@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include <glm/glm.hpp>
+#include "clue/clue.hpp"
 #include "int.hpp"
 #include "core.hpp"
 #include "glw.hpp"
@@ -29,6 +30,7 @@ private:
 
 struct RegionFile {
     RegionFile(const std::string& filename);
+    ~RegionFile() { LOG_INFO("RegionFile: Destructor called! " << filename); }
     HeapArray<core::Voxel, core::ChunkVoxelCount> ReadChunkVoxels();
     std::string filename;
     core::File file;
@@ -59,7 +61,7 @@ private:
     void LoadChunk(const glm::ivec3& pos);
     void SaveChunk(const glm::ivec3& pos, const Chunk& chunk);
     void GenerateRegionTerrain(const std::string& path, i16 rx, i16 ry, i16 rz);
-    std::string GetRegionPath(const glm::ivec3& pos);
+    std::string GetRegionPathFromChunkPos(const glm::ivec3& pos);
 };
 
 void CreateWorld(const std::string& path);

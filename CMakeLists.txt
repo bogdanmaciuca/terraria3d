@@ -41,6 +41,11 @@ find_package(OpenGL REQUIRED)
 # Create executable
 add_executable(${PROJECT_NAME} ${SRCS} ${C_SRCS})
 
+# clang-tidy
+#find_program(CLANG_TIDY_EXE NAMES "clang-tidy" REQUIRED)
+#set(CLANG_TIDY_COMMAND "${CLANG_TIDY_EXE}" "-checks=bugprone-*")
+#set_target_properties(${PROJECT_NAME} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
+
 # Link libraries
 target_link_libraries(${PROJECT_NAME} 
     PRIVATE 

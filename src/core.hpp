@@ -12,16 +12,16 @@ namespace core {
     };
 
     enum {
-        Pixelization = 1,
+        Pixelization = 2,
 
         ChunkSize = 32, ChunkSizeLog2 = 5,
         ChunkVoxelCount = ChunkSize * ChunkSize * ChunkSize,
         ChunkByteSize = ChunkVoxelCount * sizeof(Voxel),
 
-        RegionSize = 4, RegionSizeLog2 = 4,
+        RegionSize = 4, RegionSizeLog2 = 2,
         RegionChunkCount = RegionSize * RegionSize * RegionSize,
 
-        WorldWidthRegions = 1, WorldHeightRegions = 1,
+        WorldWidthRegions = 4, WorldHeightRegions = 1,
         WorldWidth = WorldWidthRegions * RegionSize,   // Measured
         WorldHeight = WorldHeightRegions * RegionSize, // in chunks
 
@@ -46,7 +46,7 @@ namespace core {
         ~File();
         void Open(const char* filename, const char* options = "rb+");
         void Close();
-        void MoveAt(std::size_t offset, u32 origin = SEEK_SET);
+        void MoveAt(u32 offset, u32 origin = SEEK_SET);
         std::size_t Tell();
         void Read(void* data, std::size_t byte_size);
         void Write(const void* data, std::size_t byte_size);

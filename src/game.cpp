@@ -8,21 +8,17 @@
 #include "glw.hpp"
 #include "debug.hpp"
 
-Game::Game(i16 window_width, i16 window_height, const std::string& world_path) {
+Game::Game(i32 window_width, i32 window_height, const std::string& world_path) {
     _window_width = window_width; _window_height = window_height;
+    _game_width = _window_width / core::Pixelization;
+    _game_height = _window_height / core::Pixelization;
     _world_path = std::string(world_path);
     glw::Initialize(window_width, window_height);
     _framebuf.Initialize();
     _framebuf.Bind();
-    _framebuf_tex.Initialize(
-        window_width / core::Pixelization,
-        window_height / core::Pixelization
-    );
+    _framebuf_tex.Initialize(_game_width, _game_height);
     _framebuf.AddTexture(_framebuf_tex);
-    _renderbuf.Initialize(
-        window_width / core::Pixelization,
-        window_height / core::Pixelization
-    );
+    _renderbuf.Initialize(_game_width, _game_height);
     _renderbuf.AttachToFramebuffer();
     assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 
@@ -53,18 +49,14 @@ Game::~Game() {
 }
 
 void Game::Run() {
-    double now;
+    double now = glfwGetTime();
     while (!glfwWindowShouldClose(glw::window)) {
         double then = now;
         now = glfwGetTime();
         _delta_time = now - then;
 
         glEnable(GL_DEPTH_TEST);
-        glViewport(
-            0, 0,
-            _window_width / core::Pixelization,
-            _window_height / core::Pixelization
-        );
+        glViewport( 0, 0, _game_width, _game_height);
         _framebuf.Bind();
         RenderFrame();
         _framebuf.BindDefault();
@@ -95,7 +87,7 @@ void Game::Initialize() {
     debug_shader.Source("./assets/shaders/debug_vert.glsl", "./assets/shaders/debug_frag.glsl");
     debug_shader.Compile();
 
-    camera.Initialize(77.0f, (float)_window_width / _window_height);
+    camera.Initialize(77.0f, (float)_window_width / (float)_window_height);
 }
 
 void Game::RenderFrame() {
@@ -120,13 +112,13 @@ void Game::RenderFrame() {
 void Game::UpdateLogic() {
     camera.ProcessMouse();
     if (glfwGetKey(glw::window, GLFW_KEY_W))
-        camera.Move(glw::Camera::Forward, _delta_time);
+        camera.Move(glw::Camera::Forward, static_cast<float>(_delta_time));
     if (glfwGetKey(glw::window, GLFW_KEY_S))
-        camera.Move(glw::Camera::Backward, _delta_time);
+        camera.Move(glw::Camera::Backward, static_cast<float>(_delta_time));
     if (glfwGetKey(glw::window, GLFW_KEY_A))
-        camera.Move(glw::Camera::Left, _delta_time);
+        camera.Move(glw::Camera::Left, static_cast<float>(_delta_time));
     if (glfwGetKey(glw::window, GLFW_KEY_D))
-        camera.Move(glw::Camera::Right, _delta_time);
+        camera.Move(glw::Camera::Right, static_cast<float>(_delta_time));
     if (glfwGetKey(glw::window, GLFW_KEY_LEFT_SHIFT))
         camera.speed = 8.0f;
     else

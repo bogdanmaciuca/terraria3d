@@ -7,7 +7,7 @@
 #include "chunk.hpp"
 
 struct Game {
-    Game(i16 window_width, i16 window_height, const std::string& world_path);
+    Game(i32 window_width, i32 window_height, const std::string& world_path);
     ~Game();
     void Run();
     void Cleanup();
@@ -21,8 +21,9 @@ private:
         {  1.0f, -1.0f, 1.0f, 0.0f },
         {  1.0f,  1.0f, 1.0f, 1.0f }
     };
-    i16 _window_width, _window_height;
-    float _delta_time;
+    i32 _window_width, _window_height;
+    i32 _game_width, _game_height;
+    double _delta_time;
     std::string _world_path;
     glw::Framebuffer _framebuf;
     glw::Texture _framebuf_tex;
