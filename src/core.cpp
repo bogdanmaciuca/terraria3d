@@ -9,10 +9,11 @@ namespace core {
         Open(filename, options);
     }
     File::~File() {
-        LOG_INFO("File: Destructor called!");
-        std::fclose(_handle);
+        //LOG_INFO("File: Destructor called!");
+        //std::fclose(_handle);
     }
     void File::Open(const char* filename, const char* options) {
+        //LOG_INFO("File: Open() called!" << filename);
         _handle = std::fopen(filename, options);
         if (_handle == nullptr) {
             std::cout << "_handle == nullptr for " << filename << "\n";
@@ -20,7 +21,7 @@ namespace core {
         }
     }
     void File::Close() {
-        std::fclose(_handle);
+        //std::fclose(_handle);
     }
     void File::MoveAt(u32 offset, u32 origin) {
         std::fseek(_handle, (i32)offset, (i32)origin);

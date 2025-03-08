@@ -18,16 +18,16 @@ namespace core {
         ChunkVoxelCount = ChunkSize * ChunkSize * ChunkSize,
         ChunkByteSize = ChunkVoxelCount * sizeof(Voxel),
 
-        RegionSize = 4, RegionSizeLog2 = 2,
+        RegionSize = 16, RegionSizeLog2 = 4,
         RegionChunkCount = RegionSize * RegionSize * RegionSize,
 
-        WorldWidthRegions = 4, WorldHeightRegions = 1,
+        WorldWidthRegions = 1, WorldHeightRegions = 1,
         WorldWidth = WorldWidthRegions * RegionSize,   // Measured
         WorldHeight = WorldHeightRegions * RegionSize, // in chunks
 
-        RenderDistanceChunks = 8,
+        RenderDistanceChunks = 4,
         RenderDistance = ChunkSize * RenderDistanceChunks,
-        MaxRegionFilesOpenAtOnce = 8
+        MaxRegionFilesOpenAtOnce = 16
     };
 
     // TODO: Is this really necessary?

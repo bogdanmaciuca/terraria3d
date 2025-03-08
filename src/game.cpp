@@ -120,10 +120,9 @@ void Game::UpdateLogic() {
     if (glfwGetKey(glw::window, GLFW_KEY_D))
         camera.Move(glw::Camera::Right, static_cast<float>(_delta_time));
     if (glfwGetKey(glw::window, GLFW_KEY_LEFT_SHIFT))
-        camera.speed = 8.0f;
+        camera.speed = 24.0f;
     else
-        camera.speed = 16.0f;
+        camera.speed = 64.0f;
     chunk_manager.UpdateChunks(camera.pos);
-    //light_theta += 0.3f * _delta_time;
 }
 

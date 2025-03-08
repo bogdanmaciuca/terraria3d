@@ -1,7 +1,6 @@
 #include "chunk.hpp"
 #include <memory.h>
 #include <algorithm>
-#include <fstream>
 #include <filesystem>
 #include <iostream>
 #include <glm/glm.hpp>
@@ -41,7 +40,6 @@ void Chunk::Render() {
 RegionFile::RegionFile(const std::string& filename)
     : filename(filename), file(filename.c_str())
 {
-    std::cout << "Region file opened!\n";
     // TODO: check if file is open
     file.Read(reinterpret_cast<char*>(&metadata[0]), sizeof(metadata));
 }
@@ -52,16 +50,16 @@ void ChunkManager::Initialize(const std::string& world_path) {
 }
 
 void ChunkManager::UpdateChunks(const glm::vec3& player_pos) {
-    LOG_INFO("Updating chunks...");
+    glm::ivec3 player_chunk_pos;
+    player_chunk_pos.x = static_cast<i32>(player_pos.x) / (core::ChunkSize - 2);
+    player_chunk_pos.y = static_cast<i32>(player_pos.y) / (core::ChunkSize - 2);
+    player_chunk_pos.z = static_cast<i32>(player_pos.z) / (core::ChunkSize - 2);
+ 
     // Adding new chunks to the hashmap
     for (i32 x = -core::RenderDistanceChunks; x <= core::RenderDistanceChunks; x++)
         for (i32 y = -core::RenderDistanceChunks; y <= core::RenderDistanceChunks; y++)
             for (i32 z = -core::RenderDistanceChunks; z <= core::RenderDistanceChunks; z++) {
-                if (x * x + y * y + z * z <= core::RenderDistance * core::RenderDistance) {
-                    glm::ivec3 player_chunk_pos;
-                    player_chunk_pos.x = static_cast<i32>(player_pos.x) >> core::ChunkSizeLog2; // TODO: static_cast
-                    player_chunk_pos.y = static_cast<i32>(player_pos.y) >> core::ChunkSizeLog2;
-                    player_chunk_pos.z = static_cast<i32>(player_pos.z) >> core::ChunkSizeLog2;
+                if (x * x + y * y + z * z <= core::RenderDistanceChunks * core::RenderDistanceChunks) {
                     glm::ivec3 position = glm::ivec3(player_chunk_pos) + glm::ivec3(x, y, z);
                     if (position.x < 0 || position.y < 0 || position.z < 0 ||
                         position.x >= core::WorldWidth ||
@@ -77,13 +75,21 @@ void ChunkManager::UpdateChunks(const glm::vec3& player_pos) {
             }
 
     // Erasing chunks that are not needed anymore
-    for (auto& it: _map) {
-        glm::vec3 distance = glm::ivec3(player_pos) - it.first;
-        if (glm::length2(distance) > (core::RenderDistance + 2) * (core::RenderDistance + 2)) {
-            SaveChunk(it.first, it.second);
-            _map.erase(it.first);
+    for (auto it = _map.cbegin(); it != _map.cend(); ) {
+        glm::vec3 distance = glm::ivec3(player_chunk_pos) - it->first;
+        if (glm::length2(distance) > (core::RenderDistanceChunks + 2) * (core::RenderDistanceChunks + 2)) {
+            SaveChunk(it->first, it->second);
+            it = _map.erase(it);
+        }
+        else {
+            ++it;
         }
     }
+    //std::erase_if(_map, [player_pos](const auto& item) {
+    //    auto const& [key, value] = item;
+    //    const glm::vec3 distance = glm::ivec3(player_pos) - key * (i32)core::ChunkSize;
+    //    return glm::length2(distance) > (core::RenderDistance + 2) * (core::RenderDistance + 2);
+    //});
 }
 
 std::string GetRegionFilenameFromChunkPos(const glm::ivec3& chunk_pos) {
@@ -113,7 +119,7 @@ i32 GetIdxOfChunkInRegion(const glm::ivec3& chunk_pos) {
 }
 
 void ChunkManager::LoadChunk(const glm::ivec3& pos) {
-    LOG_INFO(pos.x << " " << pos.y << " " << pos.z);
+    //LOG_INFO(pos.x << " " << pos.y << " " << pos.z);
     i32 idx_in_region = GetIdxOfChunkInRegion(pos);
 
     const std::string filename = GetRegionPathFromChunkPos(pos);
@@ -124,7 +130,7 @@ void ChunkManager::LoadChunk(const glm::ivec3& pos) {
         }
     );
     if (region_file == _region_files.end()) {
-        std::cout << "Not found!\n";
+        //std::cout << "Not found!\n";
         _region_files.emplace_back(filename);
         if (_region_files.size() > core::MaxRegionFilesOpenAtOnce)
             _region_files.erase(_region_files.begin());
@@ -138,10 +144,7 @@ void ChunkManager::LoadChunk(const glm::ivec3& pos) {
 
     region_file->file.ReadAt(
         offset, reinterpret_cast<char*>(it.first->second.voxels.Get()), size);
-    //for(i32 i = 0; i < core::ChunkVoxelCount; i++) {
-    //    if ((i32)(it.first->second.voxels).Get()[i].density != 0)
-    //        std::cout << (i32)(it.first->second.voxels).Get()[i].density << " ";
-    //}
+
     it.first->second.Mesh();
 }
 
@@ -182,11 +185,11 @@ void GenerateChunkTerrain(core::VoxelArray* voxels, const glm::ivec3& chunk_pos_
             for (i32 z = 0; z < core::ChunkSize; z++) {
                 glm::ivec3 world_chunk_pos = chunk_pos_in_reg + region_pos * (i32)core::RegionSize;
                 glm::ivec3 world_voxel_pos = glm::ivec3(x, y, z) + world_chunk_pos * ((i32)core::ChunkSize - 2);
-                float val = noise2(
-                    (float)world_voxel_pos.x / 10.0f,
-                    (float)world_voxel_pos.z / 10.0f
-                ) * 4.0f + 4.0f;
-                val = (float)world_voxel_pos.y - val;
+                float val = noise3(
+                    (float)world_voxel_pos.x / 100.0f,
+                    (float)world_voxel_pos.y / 100.0f,
+                    (float)world_voxel_pos.z / 100.0f
+                ) * 1.0f;
                 val = glm::clamp(val, -1.0f, 1.0f);
  
                 const i32 idx =
