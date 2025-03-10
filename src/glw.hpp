@@ -7,12 +7,44 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "int.hpp"
-#include <cmath>
 
-// TODO: cleanup OpenGL without destructors
 // TODO: initialize as many resources at once as possible
-namespace glw {
-    inline GLFWwindow* window;
+class GLWrapper {
+public:
+    GLWrapper() {};
+    GLWrapper(i32 window_width, i32 window_height);
+    void Initialize(i32 window_width, i32 window_height);
+
+    class VertexArrayObject;
+    VertexArrayObject& AllocVertexArrayObject();
+
+    template<GLenum TBuffer, typename TElem, GLenum TUsage>
+    class Buffer;
+
+    template<typename TElem, GLenum TUsage = GL_STATIC_DRAW>
+    using VertexBuffer = Buffer<GL_ARRAY_BUFFER, TElem, TUsage>;
+
+    template<typename TElem, GLenum TUsage = GL_STATIC_DRAW>
+    VertexBuffer<TElem, TUsage>& AllocVertexBuffer();
+
+    template<typename TElem, GLenum TUsage = GL_STATIC_DRAW>
+    using IndexBuffer = Buffer<GL_ELEMENT_ARRAY_BUFFER, TElem, TUsage>;
+    template<typename TElem, GLenum TUsage = GL_STATIC_DRAW>
+    IndexBuffer<TElem, TUsage>& AllocIndexBuffer();
+
+    class Shader;
+    Shader& AllocShader();
+
+    class Texture;
+    Texture& AllocTexture();
+
+    class Framebuffer;
+    Framebuffer& AllocFramebuffer();
+    
+    class Renderbuffer;
+    Renderbuffer& AllocRenderbuffer();
+
+    class Camera;
 
     struct GLObject {
     public:
@@ -21,7 +53,7 @@ namespace glw {
         u32 _ID;
     };
 
-    struct VertexArrayObject : public GLObject {
+    class VertexArrayObject : public GLObject {
     public:
         void Initialize(i32 stride);
         void Bind();
@@ -34,7 +66,7 @@ namespace glw {
     };
 
     template<GLenum TBuffer, typename TElem, GLenum TUsage>
-    struct Buffer : public GLObject {
+    class Buffer : public GLObject {
     public:
         void Initialize() { glGenBuffers(1, &_ID); }
         void Bind() { glBindBuffer(TBuffer, _ID); }
@@ -51,13 +83,7 @@ namespace glw {
         std::size_t _length;
     };
 
-    template<typename TElem, GLenum TUsage = GL_STATIC_DRAW>
-    using VertexBuffer = Buffer<GL_ARRAY_BUFFER, TElem, TUsage>;
-
-    template<typename TElem, GLenum TUsage = GL_STATIC_DRAW>
-    using IndexBuffer = Buffer<GL_ELEMENT_ARRAY_BUFFER, TElem, TUsage>;
-
-    struct Shader : public GLObject {
+    class Shader : public GLObject {
     public:
         void Source(const std::string& vertex_filename, const std::string& fragment_filename);
         void Compile();
@@ -70,7 +96,7 @@ namespace glw {
         std::string _vertex_filename, _fragment_filename;
     };
 
-    struct Texture : public GLObject {
+    class Texture : public GLObject {
     public:
         void Initialize(i32 width, i32 height);
         void Bind();
@@ -78,7 +104,7 @@ namespace glw {
         u32 _width, _height;
     };
 
-    struct Framebuffer : public GLObject {
+    class Framebuffer : public GLObject {
     public:
         void Initialize();
         void Bind(GLenum target = GL_FRAMEBUFFER);
@@ -88,24 +114,25 @@ namespace glw {
     };
 
     // TODO: Maybe store width and height here (if ever needed)
-    struct Renderbuffer : public GLObject {
+    class Renderbuffer : public GLObject {
     public:
         void Initialize(i32 width, i32 height);
         void Bind(GLenum target = GL_RENDERBUFFER);
         void AttachToFramebuffer();
     };
 
-    struct Camera {
+    class Camera {
     public:
         enum MoveDir { Forward, Backward, Left, Right };
         glm::vec3 pos = glm::vec3(0); // TODO: maybe make these
         float speed = 3.0f;           // private
-        void Initialize(float FOV, float w_h_ratio);
+        void Initialize(GLFWwindow* window, float FOV, float w_h_ratio);
         glm::mat4 GetViewMatrix();
         glm::mat4 GetViewProjection();
         void ProcessMouse();
         void Move(MoveDir dir, float delta_time);
     private:
+        GLFWwindow* _window;
         double _last_mouse_x = 0 , _last_mouse_y = 0;
         float _sensitivity = 0.25f;
         float _yaw = 0, _pitch = 0;
@@ -116,9 +143,19 @@ namespace glw {
         const float _z_far = 800.0f;
     };
 
-    void Initialize(i32 window_width, i32 window_height);
-    void Cleanup();
     void DrawIndexed(u32 indices_num, GLenum mode = GL_TRIANGLES, GLenum type = GL_UNSIGNED_INT);
     void Draw(u32 vertices_num, GLenum mode = GL_TRIANGLES);
-}
+private:
+    GLFWwindow* _window;
+    std::vector<VertexArrayObject> _VAOs;
+};
 
+#ifdef GLW_GLOBAL_TYPES
+using VertexArrayObject = GLWrapper::VertexArrayObject;
+using VertexBuffer = GLWrapper::VertexBuffer;
+using IndexBuffer = GLWrapper::IndexBuffer;
+using Shader = GLWrapper::Shader;
+using Texture = GLWrapper::Texture;
+using Framebuffer = GLWrapper::Framebuffer;
+using Renderbuffer = GLWrapper::Renderbuffer;
+#endif
